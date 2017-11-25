@@ -26,5 +26,6 @@ decimal = (Lit <<< toInt <<< reverse) <$> (some digit)
                         '8' -> 8
                         '9' -> 9
                         _   -> 0
-                      
+
+parseHutton :: Parser String Expr
 parseHutton = buildExprParser [[ Infix (string "+" $> Add) AssocRight ]] decimal
