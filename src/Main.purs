@@ -6,6 +6,7 @@ import Control.Monad.Eff (Eff)
 import DOM (DOM)
 import Data.Array (some, reverse, uncons)
 import Data.Bifunctor (lmap)
+import Data.Functor (voidRight)
 import Data.Maybe (Maybe(..))
 import Partial.Unsafe (unsafePartial)
 import Signal.Channel (CHANNEL)
@@ -40,12 +41,12 @@ decimal = some digit
                         '8' -> 8
                         '9' -> 9
 
-parseHutton :: Parser String Expr
-parseHutton = buildExprParser [ [ Infix (string "+" $> Add) AssocRight ] ] decimal
+parseH :: Parser String Expr
+parseH = buildExprParser [ [ Infix (string "+" # voidRight Add) AssocRight ] ] decimal
 
 main :: forall eff. Eff (channel :: CHANNEL, dom :: DOM | eff) Unit
-main = sparkle "Hutton's razor" parseAndEval 
-  where parseAndEval = parseHutton
-                          # map eval
-                          # flip runParser
-                          # map (lmap show)
+main = sparkle "Hutton's razor" parse' 
+  where parse' = parseH
+                    # map eval
+                    # flip runParser
+                    # map (lmap show)
