@@ -22,8 +22,10 @@ eval (Lit i)     = i
 eval (Add x1 x2) = eval x1 + eval x2
 
 decimal :: Parser String Expr
-decimal = (Lit <<< toInt <<< reverse) <$> (some digit)
-  where toInt arr = case (uncons arr) of
+decimal = some digit
+            # map makeLit
+  where makeLit x = x # reverse # toInt # Lit
+        toInt arr = case (uncons arr) of
                         Just { head: x, tail: xs } -> charToInt x + 10 * toInt xs
                         Nothing -> 0
         charToInt x = unsafePartial $ case x of
@@ -42,5 +44,8 @@ parseHutton :: Parser String Expr
 parseHutton = buildExprParser [ [ Infix (string "+" $> Add) AssocRight ] ] decimal
 
 main :: forall eff. Eff (channel :: CHANNEL, dom :: DOM | eff) Unit
-main = sparkle "Hutton's razor" parseAndEval where
-  parseAndEval = (lmap $ show) <$> (flip runParser) (eval <$> parseHutton)
+main = sparkle "Hutton's razor" parseAndEval 
+  where parseAndEval = parseHutton
+                          # map eval
+                          # flip runParser
+                          # map (lmap show)
